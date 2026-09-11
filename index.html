@@ -185,6 +185,7 @@ input,button{font-family:inherit;outline:none;}
         <div class="p-ttl">💰 Acquisition</div>
         <div class="pi"><label>Prix d'acquisition</label><input type="number" id="p-achat" value="264966" step="1000"></div>
         <div class="pi"><label>Budget travaux</label><input type="number" id="p-travaux" value="70000" step="1000"></div>
+        <div class="pi"><label>Frais annexes</label><input type="number" id="p-frais" value="0" step="500"></div>
         <div class="p-sep"></div>
         <div class="p-ttl">📊 Financement & Revente</div>
         <div class="pi"><label>Coupon CF / mois</label><input type="number" id="p-coupon" value="2750" step="50"></div>
@@ -252,7 +253,7 @@ input,button{font-family:inherit;outline:none;}
 <script>
 const MOIS_FR=['Janv.','Févr.','Mars','Avr.','Mai','Juin','Juil.','Août','Sept.','Oct.','Nov.','Déc.'];
 const NB=19;
-const DEFS={achat:264966,travaux:70000,coupon:2750,cible:495000,margeMin:15,startM:4,startY:2026};
+const DEFS={achat:264966,travaux:70000,fraisAnnexes:0,coupon:2750,cible:495000,margeMin:15,startM:4,startY:2026};
 const fmt=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v));
 const fmtP=v=>(Math.round(v*10)/10).toFixed(1)+'%';
 
@@ -272,6 +273,7 @@ function syncParams(){
   const p=ap().params||DEFS;
   document.getElementById('p-achat').value=p.achat;
   document.getElementById('p-travaux').value=p.travaux;
+  document.getElementById('p-frais').value=p.fraisAnnexes||0;
   document.getElementById('p-coupon').value=p.coupon;
   document.getElementById('p-cible').value=p.cible;
   document.getElementById('p-marge').value=p.margeMin;
@@ -280,6 +282,7 @@ function getParams(){
   return{
     achat:parseFloat(document.getElementById('p-achat').value)||DEFS.achat,
     travaux:parseFloat(document.getElementById('p-travaux').value)||DEFS.travaux,
+    fraisAnnexes:parseFloat(document.getElementById('p-frais').value)||0,
     coupon:parseFloat(document.getElementById('p-coupon').value)||DEFS.coupon,
     cible:parseFloat(document.getElementById('p-cible').value)||DEFS.cible,
     margeMin:parseFloat(document.getElementById('p-marge').value)||DEFS.margeMin,
@@ -298,7 +301,7 @@ function tog(id){
 
 /* ── CALCS ── */
 function totalDep(){return ap().depenses.reduce((s,d)=>s+d.amount,0);}
-function baseEngage(p){return p.achat+Math.max(p.travaux,totalDep());}
+function baseEngage(p){return p.achat+Math.max(p.travaux,totalDep())+(p.fraisAnnexes||0);}
 function curIdx(p){
   const now=new Date();
   const idx=(now.getFullYear()-p.startY)*12+(now.getMonth()-p.startM);
@@ -469,7 +472,7 @@ function render(){
       <div class="c-engage">
         <div class="c-eng-lbl">Total engagé</div>
         <div class="c-eng-val">${fmt(r.total)}</div>
-        ${i>0?`<div class="c-eng-charges">dont ${fmt(r.charges)} de coupons CF</div>`:''}
+        ${i>0?`<div class="c-eng-charges">dont ${fmt(r.charges)} de coupons CF${p.fraisAnnexes?` + ${fmt(p.fraisAnnexes)} de frais annexes`:''}</div>`:(p.fraisAnnexes?`<div class="c-eng-charges">dont ${fmt(p.fraisAnnexes)} de frais annexes</div>`:'')}
       </div>
       <div class="px-sections">
         <div class="px-min">
